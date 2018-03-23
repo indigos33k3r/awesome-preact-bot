@@ -15,7 +15,7 @@ const T = new Twit({
 
 const webhookHandler = GithubWebHook({
 	path: "/webhook",
-	secret: process.env.WEBHOOK_SECRET
+	secret: process.env.GITHUB_WEBHOOK_SECRET
 })
 
 const PORT = process.env.PORT || 4567
