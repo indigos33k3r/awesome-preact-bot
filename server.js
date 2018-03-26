@@ -81,7 +81,7 @@ stream.on("tweet", tweet => {
 			},
 			err => {
 				if (err) {
-					console.error("Could retweet post -> " + err.message)
+					console.error("Could not retweet post -> " + err.message)
 				}
 			}
 		)
@@ -97,7 +97,7 @@ stream.on("tweet", tweet => {
 			},
 			err => {
 				if (err) {
-					console.error("Could favorite post -> " + err.message)
+					console.error("Could not favorite post -> " + err.message)
 				}
 			}
 		)
