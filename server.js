@@ -130,7 +130,7 @@ function retweet_user(screen_name) {
 		T.post(
 			"statuses/retweet/:id",
 			{
-				id: tweet.id_str
+				id: id_str
 			},
 			err => {
 				if (err) {
