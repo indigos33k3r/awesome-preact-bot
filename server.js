@@ -42,10 +42,14 @@ setInterval(() => {
 }, 1000 * 60 * 15)
 
 webhookHandler.on("push", (_, data) => {
-	const { created, head_commit: { message } } = data
+	const {
+		created,
+		head_commit: {
+			message
+		}
+	} = data
 	// We're only concerned about merged push events
-	if (
-		!created &&
+	if (!created &&
 		message.length &&
 		message.toLowerCase().slice(0, 6) !== "revert"
 	) {
@@ -63,8 +67,7 @@ webhookHandler.on("push", (_, data) => {
 			// Post as status update to twitter
 			// --------------------------------
 			T.post(
-				"statuses/update",
-				{
+				"statuses/update", {
 					status: `${tweet} to the list ${desc} cc ${
 						twitter_username[0] !== "@"
 							? `@${twitter_username}`
@@ -92,8 +95,7 @@ stream.on("tweet", tweet => {
 		// Retweet any tweet with #preact
 		// ------------------------------
 		T.post(
-			"statuses/retweet/:id",
-			{
+			"statuses/retweet/:id", {
 				id: tweet.id_str
 			},
 			err => {
@@ -108,8 +110,7 @@ stream.on("tweet", tweet => {
 		// ------------------------------
 
 		T.post(
-			"favorites/create",
-			{
+			"favorites/create", {
 				id: tweet.id_str
 			},
 			err => {
@@ -122,22 +123,21 @@ stream.on("tweet", tweet => {
 })
 
 function retweet_user(screen_name) {
-	const UserStream = T.stream("user", {
-		screen_name
-	})
+	const UserStream = T.stream("user")
 
-	UserStream.on("tweet", ({ id_str }) => {
-		T.post(
-			"statuses/retweet/:id",
-			{
-				id: id_str
-			},
-			err => {
-				if (err) {
-					console.error("Could not retweet post -> " + err.message)
+	UserStream.on("tweet", (tweet) => {
+		if (tweet.user.screen_name === screen_name) {
+			T.post(
+				"statuses/retweet/:id", {
+					id: tweet.id_str
+				},
+				err => {
+					if (err) {
+						console.error("Could not retweet post -> " + err.message)
+					}
 				}
-			}
-		)
+			)
+		}
 	})
 }
 
