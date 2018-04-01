@@ -1,7 +1,7 @@
 const express = require("express")
 const bodyParser = require("body-parser")
 const Twit = require("twit")
-const https = require('https')
+const https = require("https")
 const GithubWebHook = require("express-github-webhook")
 
 require("dotenv-safe").config()
@@ -25,31 +25,27 @@ const app = express()
 app.use(bodyParser.json())
 app.use(webhookHandler)
 
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
 	res.json({
-		status: 'good'
+		status: "good"
 	})
 })
 
 // Make Request every 15 minutes to keep it from sleeping
 setInterval(() => {
-	https.get('https://awesome-preact-bot.herokuapp.com/', res => {
-		res.setEncoding('utf8')
-		let body = ''
-		res.on('data', data => body += data)
-		res.on('end', () => console.log(body))
+	https.get("https://awesome-preact-bot.herokuapp.com/", res => {
+		res.setEncoding("utf8")
+		let body = ""
+		res.on("data", data => (body += data))
+		res.on("end", () => console.log(body))
 	})
 }, 1000 * 60 * 15)
 
 webhookHandler.on("push", (_, data) => {
-	const {
-		created,
-		head_commit: {
-			message
-		}
-	} = data
+	const { created, head_commit: { message } } = data
 	// We're only concerned about merged push events
-	if (!created &&
+	if (
+		!created &&
 		message.length &&
 		message.toLowerCase().slice(0, 6) !== "revert"
 	) {
@@ -67,7 +63,8 @@ webhookHandler.on("push", (_, data) => {
 			// Post as status update to twitter
 			// --------------------------------
 			T.post(
-				"statuses/update", {
+				"statuses/update",
+				{
 					status: `${tweet} to the list ${desc} cc ${
 						twitter_username[0] !== "@"
 							? `@${twitter_username}`
@@ -95,7 +92,8 @@ stream.on("tweet", tweet => {
 		// Retweet any tweet with #preact
 		// ------------------------------
 		T.post(
-			"statuses/retweet/:id", {
+			"statuses/retweet/:id",
+			{
 				id: tweet.id_str
 			},
 			err => {
@@ -110,7 +108,8 @@ stream.on("tweet", tweet => {
 		// ------------------------------
 
 		T.post(
-			"favorites/create", {
+			"favorites/create",
+			{
 				id: tweet.id_str
 			},
 			err => {
@@ -121,6 +120,30 @@ stream.on("tweet", tweet => {
 		)
 	}
 })
+
+function retweet_user(screen_name) {
+	const UserStream = T.stream("user", {
+		screen_name
+	})
+
+	UserStream.on("tweet", ({ id_str }) => {
+		T.post(
+			"statuses/retweet/:id",
+			{
+				id: tweet.id_str
+			},
+			err => {
+				if (err) {
+					console.error("Could not retweet post -> " + err.message)
+				}
+			}
+		)
+	})
+}
+
+// List of folks to retweet
+retweet_user("preactjs")
+retweet_user("iamdevloper") // for the humour
 
 app.listen(PORT, () => {
 	console.log(`App running on PORT ${PORT}`)
