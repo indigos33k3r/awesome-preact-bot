@@ -90,7 +90,7 @@ const stream = T.stream("statuses/filter", {
 
 stream.on("tweet", tweet => {
 	// Don't retweet/favorite mine!
-	if (tweet.user.screen_name !== "AwesomePreact") {
+	if (tweet.user.screen_name !== "AwesomePreact" && !tweet.text.match("PreACT")) {
 		// ------------------------------
 		// Retweet any tweet with #preact
 		// ------------------------------
