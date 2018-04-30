@@ -23,7 +23,7 @@ const PORT = process.env.PORT || 4567
 const app = express()
 
 app.use(bodyParser.json())
-app.use(webhookHandler)
+// app.use(webhookHandler)
 
 app.get("/", (req, res) => {
 	res.json({
@@ -31,7 +31,7 @@ app.get("/", (req, res) => {
 	})
 })
 
-// Make Request every 15 minutes to keep it from sleeping
+// Make Request every 20 minutes to keep it from sleeping
 setInterval(() => {
 	https.get("https://awesome-preact-bot.herokuapp.com/", res => {
 		res.setEncoding("utf8")
@@ -39,7 +39,7 @@ setInterval(() => {
 		res.on("data", data => (body += data))
 		res.on("end", () => console.log(body))
 	})
-}, 1000 * 60 * 15)
+}, 1000 * 60 * 20)
 
 // webhookHandler.on("push", (_, data) => {
 // 	const {
@@ -58,12 +58,7 @@ setInterval(() => {
 // 		const titleCase = str => str[0].toUpperCase() + str.slice(1)
 
 // 		const tweet = titleCase(commit.toLowerCase().replace("add", "added"))
-// 		console.log({
-// 			commits: data.commits,
-// 			author: data.head_commit.author,
-// 			committer: data.head_commit.committer,
-// 			modified: data.head_commit.modified
-// 		})
+
 // 		// Only tweet if we add to the list
 // 		if (tweet.match(/add/i)) {
 // 			// --------------------------------
