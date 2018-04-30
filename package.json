@@ -2,7 +2,7 @@
 	"name": "awesome-preact-bot",
 	"private": true,
 	"version": "0.1.0",
-	"description": "",
+	"description": "Not so smart but cool bot for the awesome-preact list",
 	"main": "server.js",
 	"scripts": {
 		"start": "node server.js"

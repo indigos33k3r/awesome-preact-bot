@@ -2,7 +2,7 @@ const express = require("express")
 const bodyParser = require("body-parser")
 const Twit = require("twit")
 const https = require("https")
-const GithubWebHook = require("express-github-webhook")
+// const GithubWebHook = require("express-github-webhook")
 
 require("dotenv-safe").config()
 
@@ -14,10 +14,10 @@ const T = new Twit({
 	timeout_ms: 60 * 1000 // optional HTTP request timeout to apply to all requests.
 })
 
-const webhookHandler = GithubWebHook({
-	path: "/webhook",
-	secret: process.env.GITHUB_WEBHOOK_SECRET
-})
+// const webhookHandler = GithubWebHook({
+// 	path: "/webhook",
+// 	secret: process.env.GITHUB_WEBHOOK_SECRET
+// })
 
 const PORT = process.env.PORT || 4567
 const app = express()
@@ -41,48 +41,52 @@ setInterval(() => {
 	})
 }, 1000 * 60 * 15)
 
-webhookHandler.on("push", (_, data) => {
-	const {
-		created,
-		head_commit: {
-			message
-		}
-	} = data
-	// We're only concerned about merged push events
-	if (!created &&
-		message.length &&
-		message.toLowerCase().slice(0, 6) !== "revert"
-	) {
-		const [commit, desc, twitter_username = null] = message
-			.split(/\n+/)
-			.map(m => m.replace(/\(.*\)/, "").trim())
+// webhookHandler.on("push", (_, data) => {
+// 	const {
+// 		created,
+// 		head_commit: {
+// 			message = ""
+// 		} = {}
+// 	} = data
 
-		const titleCase = str => str[0].toUpperCase() + str.slice(1)
+// 	// We're only concerned about merged push events
+// 	if (!created && message.length && !message.toLowerCase().includes("revert")) {
+// 		const [commit, desc, twitter_username = null] = message
+// 			.split(/\n+/)
+// 			.map(m => m.replace(/\(.*\)/, "").trim())
 
-		const tweet = titleCase(commit.toLowerCase().replace("add", "added"))
+// 		const titleCase = str => str[0].toUpperCase() + str.slice(1)
 
-		// Only tweet if we add to the list
-		if (tweet.match(/add/i)) {
-			// --------------------------------
-			// Post as status update to twitter
-			// --------------------------------
-			T.post(
-				"statuses/update", {
-					status: `${tweet} to the list ${desc} cc ${
-						twitter_username[0] !== "@"
-							? `@${twitter_username}`
-							: twitter_username
-					} #preact`
-				},
-				err => {
-					if (err) {
-						console.error("Could not post to twitter -> " + err.message)
-					}
-				}
-			)
-		}
-	}
-})
+// 		const tweet = titleCase(commit.toLowerCase().replace("add", "added"))
+// 		console.log({
+// 			commits: data.commits,
+// 			author: data.head_commit.author,
+// 			committer: data.head_commit.committer,
+// 			modified: data.head_commit.modified
+// 		})
+// 		// Only tweet if we add to the list
+// 		if (tweet.match(/add/i)) {
+// 			// --------------------------------
+// 			// Post as status update to twitter
+// 			// --------------------------------
+// 			// T.post(
+// 			// 	"statuses/update",
+// 			// 	{
+// 			// 		status: `${tweet} to the list ${desc} cc ${
+// 			// 			twitter_username[0] !== "@"
+// 			// 				? `@${twitter_username}`
+// 			// 				: twitter_username
+// 			// 		} #preact`
+// 			// 	},
+// 			// 	err => {
+// 			// 		if (err) {
+// 			// 			console.error("Could not post to twitter -> " + err.message)
+// 			// 		}
+// 			// 	}
+// 			// )
+// 		}
+// 	}
+// })
 
 const stream = T.stream("statuses/filter", {
 	track: "#preact"
@@ -90,7 +94,10 @@ const stream = T.stream("statuses/filter", {
 
 stream.on("tweet", tweet => {
 	// Don't retweet/favorite mine!
-	if (tweet.user.screen_name !== "AwesomePreact" && !tweet.text.match("PreACT")) {
+	if (
+		tweet.user.screen_name !== "AwesomePreact" &&
+		!tweet.text.match("PreACT")
+	) {
 		// ------------------------------
 		// Retweet any tweet with #preact
 		// ------------------------------
@@ -125,7 +132,7 @@ stream.on("tweet", tweet => {
 function retweet_user(screen_name) {
 	const UserStream = T.stream("user")
 
-	UserStream.on("tweet", (tweet) => {
+	UserStream.on("tweet", tweet => {
 		if (tweet.user.screen_name === screen_name) {
 			T.post(
 				"statuses/retweet/:id", {
