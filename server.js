@@ -31,7 +31,7 @@ app.get("/", (req, res) => {
 	})
 })
 
-// Make Request every 20 minutes to keep it from sleeping
+// Make Request every 15 minutes to keep it from sleeping
 setInterval(() => {
 	https.get("https://awesome-preact-bot.herokuapp.com/", res => {
 		res.setEncoding("utf8")
@@ -39,7 +39,7 @@ setInterval(() => {
 		res.on("data", data => (body += data))
 		res.on("end", () => console.log(body))
 	})
-}, 1000 * 60 * 20)
+}, 1000 * 60 * 15)
 
 // webhookHandler.on("push", (_, data) => {
 // 	const {
