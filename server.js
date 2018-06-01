@@ -31,7 +31,7 @@ app.get("/", (req, res) => {
 	})
 })
 
-// Make Request every 15 minutes to keep it from sleeping
+// Make Request every 30 minutes to keep it from sleeping
 setInterval(() => {
 	https.get("https://awesome-preact-bot.herokuapp.com/", res => {
 		res.setEncoding("utf8")
@@ -39,7 +39,7 @@ setInterval(() => {
 		res.on("data", data => (body += data))
 		res.on("end", () => console.log(body))
 	})
-}, 1000 * 60 * 15)
+}, 1000 * 60 * 30)
 
 // webhookHandler.on("push", (_, data) => {
 // 	const {
@@ -97,7 +97,8 @@ stream.on("tweet", tweet => {
 		// Retweet any tweet with #preact
 		// ------------------------------
 		T.post(
-			"statuses/retweet/:id", {
+			"statuses/retweet/:id",
+			{
 				id: tweet.id_str
 			},
 			err => {
@@ -112,7 +113,8 @@ stream.on("tweet", tweet => {
 		// ------------------------------
 
 		T.post(
-			"favorites/create", {
+			"favorites/create",
+			{
 				id: tweet.id_str
 			},
 			err => {
@@ -130,7 +132,8 @@ function retweet_user(screen_name) {
 	UserStream.on("tweet", tweet => {
 		if (tweet.user.screen_name === screen_name) {
 			T.post(
-				"statuses/retweet/:id", {
+				"statuses/retweet/:id",
+				{
 					id: tweet.id_str
 				},
 				err => {
