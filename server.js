@@ -1,12 +1,11 @@
 const express = require("express")
 const bodyParser = require("body-parser")
-const Twit = require("twit")
+const Twitter = require("twitter-lite")
 const https = require("https")
-// const GithubWebHook = require("express-github-webhook")
 
 require("dotenv-safe").config()
 
-const T = new Twit({
+const client = new Twitter({
 	consumer_key: process.env.CONSUMER_KEY,
 	consumer_secret: process.env.CONSUMER_SECRET,
 	access_token: process.env.ACCESS_TOKEN,
@@ -14,16 +13,10 @@ const T = new Twit({
 	timeout_ms: 60 * 1000 // optional HTTP request timeout to apply to all requests.
 })
 
-// const webhookHandler = GithubWebHook({
-// 	path: "/webhook",
-// 	secret: process.env.GITHUB_WEBHOOK_SECRET
-// })
-
 const PORT = process.env.PORT || 4567
 const app = express()
 
 app.use(bodyParser.json())
-// app.use(webhookHandler)
 
 app.get("/", (req, res) => {
 	res.json({
@@ -41,49 +34,7 @@ setInterval(() => {
 	})
 }, 1000 * 60 * 30)
 
-// webhookHandler.on("push", (_, data) => {
-// 	const {
-// 		created,
-// 		head_commit: {
-// 			message = ""
-// 		} = {}
-// 	} = data
-
-// 	// We're only concerned about merged push events
-// 	if (!created && message.length && !message.toLowerCase().includes("revert")) {
-// 		const [commit, desc, twitter_username = null] = message
-// 			.split(/\n+/)
-// 			.map(m => m.replace(/\(.*\)/, "").trim())
-
-// 		const titleCase = str => str[0].toUpperCase() + str.slice(1)
-
-// 		const tweet = titleCase(commit.toLowerCase().replace("add", "added"))
-
-// 		// Only tweet if we add to the list
-// 		if (tweet.match(/add/i)) {
-// 			// --------------------------------
-// 			// Post as status update to twitter
-// 			// --------------------------------
-// 			// T.post(
-// 			// 	"statuses/update",
-// 			// 	{
-// 			// 		status: `${tweet} to the list ${desc} cc ${
-// 			// 			twitter_username[0] !== "@"
-// 			// 				? `@${twitter_username}`
-// 			// 				: twitter_username
-// 			// 		} #preact`
-// 			// 	},
-// 			// 	err => {
-// 			// 		if (err) {
-// 			// 			console.error("Could not post to twitter -> " + err.message)
-// 			// 		}
-// 			// 	}
-// 			// )
-// 		}
-// 	}
-// })
-
-const stream = T.stream("statuses/filter", {
+const stream = client.stream("statuses/filter", {
 	track: "#preact"
 })
 
@@ -96,7 +47,7 @@ stream.on("tweet", tweet => {
 		// ------------------------------
 		// Retweet any tweet with #preact
 		// ------------------------------
-		T.post(
+		client.post(
 			"statuses/retweet/:id",
 			{
 				id: tweet.id_str
@@ -112,7 +63,7 @@ stream.on("tweet", tweet => {
 		// Favorite any tweet with #preact
 		// ------------------------------
 
-		T.post(
+		client.post(
 			"favorites/create",
 			{
 				id: tweet.id_str
@@ -127,7 +78,7 @@ stream.on("tweet", tweet => {
 })
 
 function retweet_user(screen_name) {
-	const UserStream = T.stream("user")
+	const UserStream = client.stream("user")
 
 	UserStream.on("tweet", tweet => {
 		if (tweet.user.screen_name === screen_name) {

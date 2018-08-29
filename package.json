@@ -8,12 +8,11 @@
 		"start": "node server.js"
 	},
 	"author": "",
-	"license": "ISC",
+	"license": "MIT",
 	"dependencies": {
 		"body-parser": "^1.18.2",
 		"dotenv-safe": "^5.0.1",
 		"express": "^4.16.3",
-		"express-github-webhook": "^1.0.6",
-		"twit": "^2.2.9"
+		"twitter-lite": "^0.7.0"
 	}
 }
