@@ -5,12 +5,17 @@ const https = require("https")
 
 require("dotenv-safe").config()
 
+process.on("unhandledRejection", err => {
+	console.log("******************")
+	console.log(err.message)
+	console.log("******************")
+})
+
 const client = new Twitter({
 	consumer_key: process.env.CONSUMER_KEY,
 	consumer_secret: process.env.CONSUMER_SECRET,
-	access_token: process.env.ACCESS_TOKEN,
-	access_token_secret: process.env.ACCESS_TOKEN_SECRET,
-	timeout_ms: 60 * 1000 // optional HTTP request timeout to apply to all requests.
+	access_token_key: process.env.ACCESS_TOKEN,
+	access_token_secret: process.env.ACCESS_TOKEN_SECRET
 })
 
 const PORT = process.env.PORT || 4567
@@ -34,72 +39,27 @@ setInterval(() => {
 	})
 }, 1000 * 60 * 30)
 
-const stream = client.stream("statuses/filter", {
-	track: "#preact"
-})
-
-stream.on("tweet", tweet => {
-	// Don't retweet/favorite mine!
-	if (
-		tweet.user.screen_name !== "AwesomePreact" &&
-		!tweet.text.match("PreACT")
-	) {
-		// ------------------------------
-		// Retweet any tweet with #preact
-		// ------------------------------
-		client.post(
-			"statuses/retweet/:id",
-			{
-				id: tweet.id_str
-			},
-			err => {
-				if (err) {
-					console.error("Could not retweet post -> " + err.message)
-				}
-			}
-		)
-
-		// ------------------------------
-		// Favorite any tweet with #preact
-		// ------------------------------
-
-		client.post(
-			"favorites/create",
-			{
-				id: tweet.id_str
-			},
-			err => {
-				if (err) {
-					console.error("Could not favorite post -> " + err.message)
-				}
-			}
-		)
-	}
-})
-
-function retweet_user(screen_name) {
-	const UserStream = client.stream("user")
-
-	UserStream.on("tweet", tweet => {
-		if (tweet.user.screen_name === screen_name) {
-			T.post(
-				"statuses/retweet/:id",
-				{
-					id: tweet.id_str
-				},
-				err => {
-					if (err) {
-						console.error("Could not retweet post -> " + err.message)
-					}
-				}
-			)
-		}
-	})
+const parameters = {
+	track: "#preact,#preactjs,#javascript",
+	follow: "422297024,743958196138606600" // @iamdevloper, @preactjs
 }
 
-// List of folks to retweet
-retweet_user("preactjs")
-retweet_user("iamdevloper") // for the humour
+client
+	.stream("statuses/filter", parameters)
+	.on("start", response => console.log("start"))
+	.on("data", async data => {
+		console.log("favoriting", data.text)
+		await client.post("favorites/create", null, { id: data.id_str })
+
+		console.log("retweeting", data.text)
+		await client.post("statuses/retweet", null, { id: data.id_str })
+	})
+	.on("ping", () => console.log("ping"))
+	.on("error", error => console.log("error", error))
+	.on("end", response => console.log("end"))
+
+// to stop the stream:
+// client.stream.destroy() // emits "end" and "error" event
 
 app.listen(PORT, () => {
 	console.log(`App running on PORT ${PORT}`)
