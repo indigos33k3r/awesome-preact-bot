@@ -29,7 +29,7 @@ app.get("/", (req, res) => {
 	})
 })
 
-// Make Request every 30 minutes to keep it from sleeping
+// Make Request every 40 minutes to keep it from sleeping
 setInterval(() => {
 	https.get("https://awesome-preact-bot.herokuapp.com/", res => {
 		res.setEncoding("utf8")
@@ -37,10 +37,10 @@ setInterval(() => {
 		res.on("data", data => (body += data))
 		res.on("end", () => console.log(body))
 	})
-}, 1000 * 60 * 30)
+}, 1000 * 60 * 40)
 
 const parameters = {
-	track: "#preact,#preactjs,#javascript",
+	track: "#preact,#preactjs",
 	follow: "422297024,743958196138606600" // @iamdevloper, @preactjs
 }
 
